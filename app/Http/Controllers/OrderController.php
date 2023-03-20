@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\OrderSaveException;
 use App\Http\Requests\StoreOrderRequest;
+use App\Models\Order;
 use Illuminate\Http\JsonResponse;
 
 class OrderController extends Controller
@@ -11,6 +13,12 @@ class OrderController extends Controller
     {
         $validated = $request->validated();
 
-        return response()->json([], 201);
+        try {
+            Order::createOrder($validated);
+
+            return response()->json([], 201);
+        } catch (OrderSaveException $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }

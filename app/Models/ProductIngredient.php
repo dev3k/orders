@@ -10,13 +10,13 @@ class ProductIngredient extends Pivot
     protected $fillable = [
         'product_id',
         'ingredient_id',
-        'quantity',
+        'portion_size',
     ];
 
     protected $casts = [
         'product_id' => 'integer',
         'ingredient_id' => 'integer',
-        'quantity' => 'integer',
+        'portion_size' => 'integer',
     ];
 
     public function product(): BelongsTo

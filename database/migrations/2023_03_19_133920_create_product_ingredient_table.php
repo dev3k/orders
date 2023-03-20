@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->foreignId('ingredient_id')->constrained()->cascadeOnDelete();
             $table->unique(['product_id', 'ingredient_id']);
-            $table->unsignedBigInteger('quantity');
+            $table->unsignedBigInteger('portion_size');
             $table->timestamps();
         });
     }

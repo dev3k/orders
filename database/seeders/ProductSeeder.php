@@ -19,7 +19,7 @@ class ProductSeeder extends Seeder
         foreach ($products as $product) {
             $ingredients = Ingredient::all()->random(rand(0, 3))->pluck('id');
             foreach ($ingredients as $ingredient) {
-                $product->ingredients()->attach($ingredient, ['quantity' => random_int(10, 300)]);
+                $product->ingredients()->attach($ingredient, ['portion_size' => random_int(10, 300)]);
             }
         }
     }

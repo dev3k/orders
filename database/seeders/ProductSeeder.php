@@ -13,14 +13,13 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
-        $products = Product::factory()
-            ->count(50)
-            ->create();
-        foreach ($products as $product) {
-            $ingredients = Ingredient::all()->random(rand(0, 3))->pluck('id');
-            foreach ($ingredients as $ingredient) {
-                $product->ingredients()->attach($ingredient, ['portion_size' => random_int(10, 300)]);
-            }
-        }
+        $product = Product::factory()
+            ->create([
+                'name' => 'Burger',
+            ]);
+
+        $product->ingredients()->attach(Ingredient::where('name', 'beef')->first(), ['portion_size' => 150]);
+        $product->ingredients()->attach(Ingredient::where('name', 'cheese')->first(), ['portion_size' => 30]);
+        $product->ingredients()->attach(Ingredient::where('name', 'onion')->first(), ['portion_size' => 20]);
     }
 }

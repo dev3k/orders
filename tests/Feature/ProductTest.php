@@ -199,9 +199,9 @@ class ProductTest extends TestCase
     {
         $this->assertInstanceOf('Illuminate\Database\Eloquent\Collection', $this->burger->ingredients);
         $this->assertEquals(3, $this->burger->ingredients()->count());
-        $this->assertEquals($this->portionSizes['beef'], $this->burger->ingredients()->where('name', 'beef')->first()?->pivot->portion_size);
-        $this->assertEquals($this->portionSizes['cheese'], $this->burger->ingredients()->where('name', 'cheese')->first()?->pivot->portion_size);
-        $this->assertEquals($this->portionSizes['onion'], $this->burger->ingredients()->where('name', 'onion')->first()?->pivot->portion_size);
+        $this->assertEquals($this->portionSizes['beef'], $this->burger->ingredients()->where('name', 'Beef')->first()?->pivot->portion_size);
+        $this->assertEquals($this->portionSizes['cheese'], $this->burger->ingredients()->where('name', 'Cheese')->first()?->pivot->portion_size);
+        $this->assertEquals($this->portionSizes['onion'], $this->burger->ingredients()->where('name', 'Onion')->first()?->pivot->portion_size);
     }
 
     //todo refactor this

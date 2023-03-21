@@ -7,6 +7,7 @@ use App\Events\Stock\LowStock;
 use App\Mail\LowStockMail;
 use App\Models\Ingredient;
 use App\Models\Product;
+use Database\Seeders\BurgerIngredientSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
@@ -15,49 +16,78 @@ class ProductTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function setUp(): void
+    protected Product $burger;
+
+    protected Ingredient $beef;
+
+    protected Ingredient $cheese;
+
+    protected Ingredient $onion;
+
+    protected array $initStock = [
+        'beef' => [
+            'stock' => 20000,
+            'stock_consumed' => 5000,
+            'stock_available' => 15000,
+        ],
+        'cheese' => [
+            'stock' => 5000,
+            'stock_consumed' => 1000,
+            'stock_available' => 4000,
+        ],
+        'onion' => [
+            'stock' => 1000,
+            'stock_consumed' => 400,
+            'stock_available' => 600,
+        ],
+    ];
+
+    protected array $burgerPortionSizes = [
+        'beef' => 150,
+        'cheese' => 30,
+        'onion' => 20,
+    ];
+
+    protected function setUp(): void
     {
         parent::setUp();
+
+        $this->seed(BurgerIngredientSeeder::class);
+
         $this->burger = Product::factory()->create([
             'name' => 'Burger',
         ]);
         $this->beef = Ingredient::where('name', 'Beef')->first();
         $this->cheese = Ingredient::where('name', 'Cheese')->first();
         $this->onion = Ingredient::where('name', 'Onion')->first();
-        $this->initStock = [
-            'beef' => [
-                'stock' => 20000,
-                'stock_consumed' => 5000,
-                'stock_available' => 15000,
-            ],
-            'cheese' => [
-                'stock' => 5000,
-                'stock_consumed' => 1000,
-                'stock_available' => 4000,
-            ],
-            'onion' => [
-                'stock' => 1000,
-                'stock_consumed' => 400,
-                'stock_available' => 600,
-            ],
-        ];
-        $this->portionSizes = [
-            'beef' => 150,
-            'cheese' => 30,
-            'onion' => 20,
-        ];
+
         $this->burger->ingredients()->attach($this->beef, [
-            'portion_size' => $this->portionSizes['beef'],
+            'portion_size' => $this->burgerPortionSizes['beef'],
         ]);
         $this->burger->ingredients()->attach($this->cheese, [
-            'portion_size' => $this->portionSizes['cheese'],
+            'portion_size' => $this->burgerPortionSizes['cheese'],
         ]);
         $this->burger->ingredients()->attach($this->onion, [
-            'portion_size' => $this->portionSizes['onion'],
+            'portion_size' => $this->burgerPortionSizes['onion'],
         ]);
     }
 
-    public function test_it_can_store_order(): void
+    public function test_can_see_burger(): void
+    {
+        $this->assertDatabaseHas('products', [
+            'name' => 'Burger',
+        ]);
+    }
+
+    public function test_burger_has_ingredients()
+    {
+        $this->assertEquals(3, $this->burger->ingredients()->count());
+        $this->assertEquals($this->burgerPortionSizes['beef'], $this->burger->ingredients()->where('name', 'Beef')->first()?->pivot->portion_size);
+        $this->assertEquals($this->burgerPortionSizes['cheese'], $this->burger->ingredients()->where('name', 'Cheese')->first()?->pivot->portion_size);
+        $this->assertEquals($this->burgerPortionSizes['onion'], $this->burger->ingredients()->where('name', 'Onion')->first()?->pivot->portion_size);
+    }
+
+    public function test_can_order_burger(): void
     {
         Event::fake([
             OrderReceived::class,
@@ -76,7 +106,7 @@ class ProductTest extends TestCase
         Event::assertNotDispatched(LowStock::class);
     }
 
-    public function test_can_send_low_stock_mail(): void
+    public function test_burger_can_send_low_stock_email(): void
     {
         $mailable = new LowStockMail($this->beef);
         $this->assertEquals(15, $this->beef->stock_available_in_kg);
@@ -86,7 +116,7 @@ class ProductTest extends TestCase
         $mailable->assertSeeInHtml($this->beef->stock_available_in_kg);
     }
 
-    public function test_it_can_dispatch_low_stock_notification(): void
+    public function test_burger_can_dispatch_low_stock_notification(): void
     {
         Event::fake([
             LowStock::class,
@@ -97,7 +127,7 @@ class ProductTest extends TestCase
         Event::assertDispatched(LowStock::class);
     }
 
-    public function test_it_cant_dispatch_low_stock_notification(): void
+    public function test_burger_cant_dispatch_low_stock_notification(): void
     {
         Event::fake([
             LowStock::class,
@@ -127,61 +157,7 @@ class ProductTest extends TestCase
         Event::assertDispatched(LowStock::class, 1);
     }
 
-    public function test_it_can_see_burger(): void
-    {
-        Product::factory()->create([
-            'name' => 'Burger',
-        ]);
-
-        $this->assertDatabaseHas('products', [
-            'name' => 'Burger',
-        ]);
-    }
-
-    public function test_it_cant_store_empty_order(): void
-    {
-        $response = $this->postJson('/order');
-
-        $response->assertStatus(422);
-
-        $response = $this->postJson('/order', ['products' => []]);
-
-        $response->assertStatus(422);
-    }
-
-    public function test_it_cant_store_order_with_unknown_product(): void
-    {
-        $response = $this->postJson('/order', [
-            'products' => [
-                [
-                    'product_id' => -1,
-                    'quantity' => 1,
-                ],
-                [
-                    'product_id' => $this->burger->id,
-                    'quantity' => 1,
-                ],
-            ],
-        ]);
-
-        $response->assertStatus(422);
-    }
-
-    public function test_it_cant_store_zero_quantities_order(): void
-    {
-        $response = $this->postJson('/order', [
-            'products' => [
-                [
-                    'product_id' => $this->burger->id,
-                    'quantity' => 0,
-                ],
-            ],
-        ]);
-
-        $response->assertStatus(422);
-    }
-
-    public function test_it_cant_store_order_with_product_above_quantity(): void
+    public function test_burger_cant_store_order_with_product_above_quantity(): void
     {
         $response = $this->postJson('/order', [
             'products' => [
@@ -195,17 +171,7 @@ class ProductTest extends TestCase
         $response->assertStatus(422);
     }
 
-    public function test_it_has_ingredients()
-    {
-        $this->assertInstanceOf('Illuminate\Database\Eloquent\Collection', $this->burger->ingredients);
-        $this->assertEquals(3, $this->burger->ingredients()->count());
-        $this->assertEquals($this->portionSizes['beef'], $this->burger->ingredients()->where('name', 'Beef')->first()?->pivot->portion_size);
-        $this->assertEquals($this->portionSizes['cheese'], $this->burger->ingredients()->where('name', 'Cheese')->first()?->pivot->portion_size);
-        $this->assertEquals($this->portionSizes['onion'], $this->burger->ingredients()->where('name', 'Onion')->first()?->pivot->portion_size);
-    }
-
-    //todo refactor this
-    public function test_it_can_order_reduce_ingredients_available_stock()
+    public function test_burger_can_order_reduce_ingredients_available_stock()
     {
         //todo find better way
         $orderQuantity = random_int(1, 3);

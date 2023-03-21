@@ -18,7 +18,7 @@ class IngredientFactory extends Factory
     {
         //$stock = fake()->randomNumber(3);
         $stock = $this->faker->numberBetween($min = 1000, $max = 5000);
-        $stock_consumed = $this->faker->numberBetween($min, $max);
+        $stock_consumed = $this->faker->numberBetween(0, $min);
 
         return [
             'name' => fake()->words(2, true),

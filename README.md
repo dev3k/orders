@@ -6,6 +6,8 @@
     <a href="https://php.net"><img alt="PHP 8.1" src="https://img.shields.io/badge/PHP-8.1-777BB4?style=for-the-badge&logo=php"></a>
 </p>
 
+---
+
 This project is ordering system code challenge that has three main models: Product, Ingredient, and Order. The system keeps track of the stock of each ingredient and updates it as orders are placed.
 
 ## Installation
@@ -17,13 +19,11 @@ This project is ordering system code challenge that has three main models: Produ
 4. Set up your database connection details in the .env file
 5. Run `php artisan key:generate` to generate an application key
 6. Run `php artisan migrate` to set up the database
-7. Run `php artisan db:seed` to seed the database with initial stock levels for the ingredients
 
 ### Option 2: Using Docker and Laravel Sail
 1. Clone the repository
 2. Run `./vendor/bin/sail up` to start the Docker containers
 3. Run `./vendor/bin/sail artisan migrate` to set up the database
-4. Run `./vendor/bin/sail artisan db:seed` to seed the database with initial stock levels for the ingredients
 
 ## Usage
 
@@ -48,4 +48,10 @@ When an order is placed, the system updates the stock levels for the ingredients
 
 ## Testing
 
-This project includes several test cases to ensure that orders are correctly stored and the stock levels are correctly updated. Run `php artisan test` to run the test suite.
+This project includes several test cases[^1] to ensure that orders are correctly stored and the stock levels are correctly updated. Run `php artisan test` to run the test suite.
+
+---
+
+[^1]: At present, I use [Pest](https://pestphp.com) for testing in my projects. However, I am familiar with Laravel's default PHPUnit tests and can also use them if needed.
+
+

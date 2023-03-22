@@ -42,7 +42,7 @@ class StoreOrderRequest extends FormRequest
     {
         return [
             'products' => 'required|array|min:1',
-            //removed exist to reduce database queries, will check for it in checkProductUnavailability
+            // Removed exists to reduce database queries, will check for it in checkProductUnavailability
             'products.*.product_id' => 'required|integer',
             'products.*.quantity' => 'required|integer|min:1',
         ];

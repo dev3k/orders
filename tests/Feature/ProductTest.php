@@ -24,6 +24,11 @@ class ProductTest extends TestCase
 
     protected Ingredient $onion;
 
+    /**
+     * Initializing Stock levels per challenge requests
+     *
+     * @var array|array[]
+     */
     protected array $initStock = [
         'beef' => [
             'stock' => 20000,
@@ -42,6 +47,11 @@ class ProductTest extends TestCase
         ],
     ];
 
+    /**
+     * Default Portion Sizes for Burger, per challenge requests
+     *
+     * @var array|int[]
+     */
     protected array $burgerPortionSizes = [
         'beef' => 150,
         'cheese' => 30,
@@ -52,8 +62,10 @@ class ProductTest extends TestCase
     {
         parent::setUp();
 
+        // Seeding initial ingredients with their initial Stock
         $this->seed(BurgerIngredientSeeder::class);
 
+        // Creating Burger Product
         $this->burger = Product::factory()->create([
             'name' => 'Burger',
         ]);
@@ -81,6 +93,7 @@ class ProductTest extends TestCase
 
     public function test_burger_has_ingredients()
     {
+        // Checking portion sizes are correct
         $this->assertEquals(3, $this->burger->ingredients()->count());
         $this->assertEquals($this->burgerPortionSizes['beef'], $this->burger->ingredients()->where('name', 'Beef')->first()?->pivot->portion_size);
         $this->assertEquals($this->burgerPortionSizes['cheese'], $this->burger->ingredients()->where('name', 'Cheese')->first()?->pivot->portion_size);
@@ -121,6 +134,7 @@ class ProductTest extends TestCase
         Event::fake([
             LowStock::class,
         ]);
+        // %50 of stock
         $this->beef->update([
             'stock_available' => $this->beef->stock / 2,
         ]);
@@ -132,6 +146,7 @@ class ProductTest extends TestCase
         Event::fake([
             LowStock::class,
         ]);
+        // above %50 of stock
         $this->beef->update([
             'stock_available' => $this->beef->stock / 2 + 1,
         ]);
@@ -143,14 +158,15 @@ class ProductTest extends TestCase
         Event::fake([
             LowStock::class,
         ]);
-
+        // below %50 of stock
         $this->beef->update([
             'stock_available' => $this->beef->stock / 2 - 1,
         ]);
-
+        // below %50 of stock
         $this->beef->update([
             'stock_available' => $this->beef->stock / 2 - 1,
         ]);
+        // below %50 of stock
         $this->beef->update([
             'stock_available' => $this->beef->stock / 2 - 2,
         ]);
@@ -163,7 +179,7 @@ class ProductTest extends TestCase
             'products' => [
                 [
                     'product_id' => $this->burger->id,
-                    'quantity' => 9999, //todo find better way
+                    'quantity' => PHP_INT_MAX,
                 ],
             ],
         ]);
@@ -173,7 +189,6 @@ class ProductTest extends TestCase
 
     public function test_burger_can_order_reduce_ingredients_available_stock()
     {
-        //todo find better way
         $orderQuantity = random_int(1, 3);
         $response = $this->postJson('/order', [
             'products' => [
@@ -185,6 +200,7 @@ class ProductTest extends TestCase
         ]);
         $response->assertStatus(201);
 
+        // checking stock levels after order
         foreach ($this->initStock as $ingredient => $stock) {
             /** @var \App\Models\Ingredient $model */
             $model = $this->{$ingredient};

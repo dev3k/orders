@@ -22,7 +22,6 @@ class DatabaseTest extends TestCase
 
         Order::factory()->count(5)->create();
         $this->assertDatabaseCount('orders', 5);
-        //todo add order products
 
         $product = Product::factory()
             ->create();
@@ -30,9 +29,15 @@ class DatabaseTest extends TestCase
         $product->ingredients()->attach(Ingredient::factory()->create(), ['portion_size' => fake()->randomNumber()]);
         $product->ingredients()->attach(Ingredient::factory()->create(), ['portion_size' => fake()->randomNumber()]);
         $product->ingredients()->attach(Ingredient::factory()->create(), ['portion_size' => fake()->randomNumber()]);
-
         $this->assertDatabaseCount('products', 6);
         $this->assertDatabaseCount('product_ingredient', 3);
+
+        $order = Order::factory()->create();
+        $order->orderProducts()->create([
+            'product_id' => $product->id,
+            'quantity' => 1,
+        ]);
+        $this->assertDatabaseCount('order_products', 1);
     }
 
     public function test_models_can_be_deleted()
@@ -52,6 +57,15 @@ class DatabaseTest extends TestCase
         $order = Order::factory()->create();
         $order->delete();
         $this->assertModelMissing($order);
-        //todo add order products
+
+        $product = Product::factory()
+            ->create();
+        $order = Order::factory()->create();
+        $order->orderProducts()->create([
+            'product_id' => $product->id,
+            'quantity' => 1,
+        ]);
+        $order->delete();
+        $this->assertDatabaseCount('order_products', 0);
     }
 }
